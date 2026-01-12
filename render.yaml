@@ -1,0 +1,63 @@
+# Render Blueprint for ULD Forecasting System
+# Quick deploy: Push to GitHub, connect to Render, done!
+
+services:
+  # =================================================================
+  # Backend API (FastAPI)
+  # =================================================================
+  - type: web
+    name: uld-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./data/uld_forecasting.db
+      - key: LOG_LEVEL
+        value: INFO
+      - key: PYTHON_VERSION
+        value: 3.12
+    healthCheckPath: /health
+    plan: free
+    autoDeploy: true
+    buildFilter:
+      paths:
+        - src/**
+        - requirements.txt
+        - pyproject.toml
+        - Dockerfile
+
+  # =================================================================
+  # Frontend Dashboard (React + Vite)
+  # =================================================================
+  - type: web
+    name: uld-dashboard
+    runtime: static
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: uld-api
+          envVarKey: RENDER_EXTERNAL_URL
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+    plan: free
+    autoDeploy: true
+    buildFilter:
+      paths:
+        - frontend/**
