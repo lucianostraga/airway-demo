@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+/* Delta brand colors */
+@theme {
+  --color-delta-red: #c8102e;
+  --color-delta-red-dark: #a00d25;
+  --color-delta-navy: #001f5b;
+  --color-delta-navy-dark: #001847;
+  --color-delta-sky: #0085ad;
+  --color-delta-silver: #b3b5b8;
+  --color-delta-gold: #f4c300;
+
+  /* Semantic colors */
+  --color-primary: var(--color-delta-red);
+  --color-primary-dark: var(--color-delta-red-dark);
+  --color-secondary: var(--color-delta-navy);
+  --color-secondary-dark: var(--color-delta-navy-dark);
+  --color-accent: var(--color-delta-sky);
+
+  /* Status colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+
+  /* Animation */
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-slide-up: slide-up 0.4s ease-out;
+  --animate-pulse-slow: pulse 3s ease-in-out infinite;
+  --animate-count-up: count-up 1s ease-out;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  @keyframes count-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+/* Base styles */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 6%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 6%;
+  --popover-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--foreground) / 0.5);
+}
+
+/* Utility classes for animations */
+.animate-in {
+  animation: var(--animate-fade-in);
+}
+
+.animate-slide-up {
+  animation: var(--animate-slide-up);
+}
+
+/* Glass effect */
+.glass {
+  background: hsl(var(--card) / 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid hsl(var(--border) / 0.5);
+}
+
+.dark .glass {
+  background: hsl(var(--card) / 0.6);
+}
+
+/* Gradient backgrounds */
+.gradient-delta {
+  background: linear-gradient(135deg, var(--color-delta-red) 0%, var(--color-delta-navy) 100%);
+}
+
+.gradient-mesh {
+  background:
+    radial-gradient(at 40% 20%, hsl(210, 100%, 50%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, hsl(0, 100%, 50%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, hsl(200, 100%, 50%, 0.1) 0px, transparent 50%);
+}

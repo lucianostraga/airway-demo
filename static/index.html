@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ULD Forecasting | Delta Operations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        delta: { 50: '#eff6ff', 100: '#dbeafe', 500: '#003366', 600: '#002244', 700: '#001a33' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .gradient-bg { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
+        .glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <!-- Header -->
+    <header class="border-b border-slate-700/50 sticky top-0 z-50 glass">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center font-bold text-lg">D</div>
+                    <div>
+                        <h1 class="text-xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">ULD Forecasting</h1>
+                        <p class="text-xs text-slate-400">Delta Air Lines Operations</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="status" class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 text-sm">
+                        <span class="w-2 h-2 bg-emerald-400 rounded-full pulse"></span>
+                        <span>System Online</span>
+                    </span>
+                    <span class="text-slate-400 text-sm" id="current-time"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="glass rounded-2xl p-6 card-hover">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                    </div>
+                    <span class="text-emerald-400 text-sm font-medium">+12%</span>
+                </div>
+                <p class="text-slate-400 text-sm mb-1">Total Stations</p>
+                <p class="text-3xl font-bold" id="total-stations">--</p>
+            </div>
+
+            <div class="glass rounded-2xl p-6 card-hover">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-indigo-500/20 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                    </div>
+                    <span class="text-emerald-400 text-sm font-medium">Active</span>
+                </div>
+                <p class="text-slate-400 text-sm mb-1">Network ULDs</p>
+                <p class="text-3xl font-bold" id="total-ulds">--</p>
+            </div>
+
+            <div class="glass rounded-2xl p-6 card-hover">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <span class="text-emerald-400 text-sm font-medium">Healthy</span>
+                </div>
+                <p class="text-slate-400 text-sm mb-1">Availability Rate</p>
+                <p class="text-3xl font-bold" id="availability-rate">--%</p>
+            </div>
+
+            <div class="glass rounded-2xl p-6 card-hover">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    <span class="text-amber-400 text-sm font-medium">Action Required</span>
+                </div>
+                <p class="text-slate-400 text-sm mb-1">Recommendations</p>
+                <p class="text-3xl font-bold" id="recommendations-count">--</p>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Main Chart -->
+            <div class="lg:col-span-2 glass rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-semibold">Demand Forecast - ATL Hub</h2>
+                    <div class="flex space-x-2">
+                        <button onclick="updateForecast('ATL')" class="px-3 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition">ATL</button>
+                        <button onclick="updateForecast('DTW')" class="px-3 py-1 text-xs bg-slate-500/20 text-slate-400 rounded-lg hover:bg-slate-500/30 transition">DTW</button>
+                        <button onclick="updateForecast('JFK')" class="px-3 py-1 text-xs bg-slate-500/20 text-slate-400 rounded-lg hover:bg-slate-500/30 transition">JFK</button>
+                    </div>
+                </div>
+                <div id="forecast-chart" class="h-72"></div>
+            </div>
+
+            <!-- Station Inventory -->
+            <div class="glass rounded-2xl p-6">
+                <h2 class="text-lg font-semibold mb-6">Station Inventory</h2>
+                <div id="inventory-chart" class="h-72"></div>
+            </div>
+        </div>
+
+        <!-- Bottom Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Recommendations -->
+            <div class="glass rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-semibold">Active Recommendations</h2>
+                    <button onclick="runOptimization()" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg text-sm font-medium hover:opacity-90 transition flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        <span>Optimize</span>
+                    </button>
+                </div>
+                <div id="recommendations-list" class="space-y-3 max-h-80 overflow-y-auto">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+
+            <!-- Hub Status -->
+            <div class="glass rounded-2xl p-6">
+                <h2 class="text-lg font-semibold mb-6">Hub Status</h2>
+                <div id="hub-status" class="space-y-4">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 glass rounded-xl p-4 transform translate-y-20 opacity-0 transition-all duration-300 z-50 max-w-sm">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <p id="toast-message" class="text-sm">Operation completed successfully</p>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:8000';
+        let forecastChart, inventoryChart;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            updateTime();
+            setInterval(updateTime, 1000);
+            await loadDashboard();
+            initCharts();
+        });
+
+        function updateTime() {
+            document.getElementById('current-time').textContent = new Date().toLocaleTimeString();
+        }
+
+        async function fetchAPI(endpoint) {
+            try {
+                const res = await fetch(`${API}${endpoint}`);
+                return await res.json();
+            } catch (e) {
+                console.error('API Error:', e);
+                return null;
+            }
+        }
+
+        async function loadDashboard() {
+            // Stations
+            const stations = await fetchAPI('/api/v1/stations/');
+            if (stations) {
+                document.getElementById('total-stations').textContent = stations.total;
+            }
+
+            // Network summary
+            const network = await fetchAPI('/api/v1/tracking/network');
+            if (network) {
+                const totalULDs = Object.values(network).reduce((sum, s) => sum + (s.total || 0), 0);
+                const avgAvail = Object.values(network).reduce((sum, s) => sum + (s.availability_ratio || 0), 0) / Object.keys(network).length;
+                document.getElementById('total-ulds').textContent = totalULDs.toLocaleString();
+                document.getElementById('availability-rate').textContent = (avgAvail * 100).toFixed(0) + '%';
+                renderHubStatus(network);
+            }
+
+            // Recommendations
+            const recs = await fetchAPI('/api/v1/recommendations/repositioning');
+            if (recs) {
+                document.getElementById('recommendations-count').textContent = recs.length;
+                renderRecommendations(recs);
+            }
+        }
+
+        function initCharts() {
+            // Forecast chart
+            forecastChart = new ApexCharts(document.getElementById('forecast-chart'), {
+                series: [],
+                chart: { type: 'area', height: 280, toolbar: { show: false }, background: 'transparent', animations: { enabled: true, speed: 800 } },
+                colors: ['#3b82f6', '#10b981', '#f59e0b'],
+                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.1 } },
+                stroke: { curve: 'smooth', width: 2 },
+                grid: { borderColor: '#334155', strokeDashArray: 4 },
+                xaxis: { type: 'datetime', labels: { style: { colors: '#94a3b8' } }, axisBorder: { show: false } },
+                yaxis: { labels: { style: { colors: '#94a3b8' } } },
+                tooltip: { theme: 'dark', x: { format: 'HH:mm' } },
+                legend: { labels: { colors: '#94a3b8' } }
+            });
+            forecastChart.render();
+            updateForecast('ATL');
+
+            // Inventory chart
+            inventoryChart = new ApexCharts(document.getElementById('inventory-chart'), {
+                series: [],
+                chart: { type: 'bar', height: 280, toolbar: { show: false }, background: 'transparent' },
+                colors: ['#3b82f6', '#10b981'],
+                plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '60%' } },
+                grid: { borderColor: '#334155', strokeDashArray: 4 },
+                xaxis: { labels: { style: { colors: '#94a3b8' } }, axisBorder: { show: false } },
+                yaxis: { labels: { style: { colors: '#94a3b8' } } },
+                tooltip: { theme: 'dark' },
+                legend: { labels: { colors: '#94a3b8' } }
+            });
+            inventoryChart.render();
+            updateInventory();
+        }
+
+        async function updateForecast(station) {
+            const demand = await fetchAPI(`/api/v1/forecasting/demand/${station}?hours_ahead=24`);
+            const supply = await fetchAPI(`/api/v1/forecasting/supply/${station}?hours_ahead=24`);
+
+            if (demand && supply) {
+                forecastChart.updateOptions({
+                    series: [
+                        { name: 'Demand (p50)', data: demand.map(d => ({ x: new Date(d.forecast_time), y: d.q50.toFixed(0) })) },
+                        { name: 'Supply (p50)', data: supply.map(d => ({ x: new Date(d.forecast_time), y: d.q50.toFixed(0) })) },
+                        { name: 'Demand (p95)', data: demand.map(d => ({ x: new Date(d.forecast_time), y: d.q95.toFixed(0) })) }
+                    ]
+                });
+            }
+        }
+
+        async function updateInventory() {
+            const network = await fetchAPI('/api/v1/tracking/network');
+            if (network) {
+                const data = Object.entries(network).slice(0, 8).map(([station, info]) => ({
+                    station,
+                    total: info.total || 0,
+                    available: info.available || 0
+                }));
+
+                inventoryChart.updateOptions({
+                    series: [
+                        { name: 'Total', data: data.map(d => d.total) },
+                        { name: 'Available', data: data.map(d => d.available) }
+                    ],
+                    xaxis: { categories: data.map(d => d.station) }
+                });
+            }
+        }
+
+        function renderRecommendations(recs) {
+            const container = document.getElementById('recommendations-list');
+            if (!recs.length) {
+                container.innerHTML = '<p class="text-slate-400 text-center py-8">No active recommendations</p>';
+                return;
+            }
+
+            container.innerHTML = recs.slice(0, 6).map(r => `
+                <div class="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 transition">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center ${r.priority === 'critical' ? 'bg-red-500/20 text-red-400' : r.priority === 'high' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-medium text-sm">${r.origin} → ${r.destination}</p>
+                            <p class="text-xs text-slate-400">${r.quantity} ${r.uld_type} units</p>
+                        </div>
+                    </div>
+                    <span class="px-2 py-1 text-xs rounded-full ${r.priority === 'critical' ? 'bg-red-500/20 text-red-400' : r.priority === 'high' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'}">${r.priority}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderHubStatus(network) {
+            const hubs = ['ATL', 'DTW', 'MSP', 'SLC'];
+            const container = document.getElementById('hub-status');
+
+            container.innerHTML = hubs.map(hub => {
+                const info = network[hub] || { total: 0, available: 0, availability_ratio: 0 };
+                const pct = (info.availability_ratio * 100).toFixed(0);
+                const color = pct >= 70 ? 'emerald' : pct >= 50 ? 'amber' : 'red';
+
+                return `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center font-bold text-sm">${hub}</div>
+                            <div>
+                                <p class="font-medium">${hub} Hub</p>
+                                <p class="text-xs text-slate-400">${info.total} ULDs / ${info.available} available</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-24 h-2 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-${color}-500 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                            </div>
+                            <span class="text-sm font-medium text-${color}-400">${pct}%</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function runOptimization() {
+            showToast('Running network optimization...');
+            const result = await fetch(`${API}/api/v1/recommendations/optimize`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) }).then(r => r.json());
+            if (result) {
+                showToast(`Optimization complete: ${result.total_moves} moves, $${result.total_cost.toLocaleString()} cost`);
+                await loadDashboard();
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+    </script>
+</body>
+</html>

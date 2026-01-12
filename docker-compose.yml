@@ -1,0 +1,136 @@
+# ULD Forecasting System - Docker Compose
+# Supports development, testing, and production-like environments
+
+version: '3.8'
+
+services:
+  # ============================================================
+  # API Service
+  # ============================================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: uld-api
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:///./data/uld_forecasting.db}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - WORKERS=${WORKERS:-1}
+    volumes:
+      - app-data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - uld-network
+
+  # ============================================================
+  # PostgreSQL Database (for production-like setup)
+  # ============================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: uld-postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-uld}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-uld_secret}
+      - POSTGRES_DB=${POSTGRES_DB:-uld_forecasting}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-uld}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - uld-network
+    profiles:
+      - postgres
+
+  # ============================================================
+  # Redis Cache (optional, for caching forecasts)
+  # ============================================================
+  redis:
+    image: redis:7-alpine
+    container_name: uld-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - uld-network
+    profiles:
+      - cache
+
+  # ============================================================
+  # Development Service (with hot reload)
+  # ============================================================
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: uld-dev
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/uld_forecasting.db
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - .:/app
+      - app-data:/app/data
+    command: uvicorn src.api:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - uld-network
+    profiles:
+      - dev
+
+  # ============================================================
+  # Test Runner
+  # ============================================================
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: uld-test
+    volumes:
+      - .:/app
+    command: pytest tests/ -v --cov=src --cov-report=term-missing
+    networks:
+      - uld-network
+    profiles:
+      - test
+
+# ============================================================
+# Networks
+# ============================================================
+networks:
+  uld-network:
+    driver: bridge
+
+# ============================================================
+# Volumes
+# ============================================================
+volumes:
+  app-data:
+    driver: local
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
