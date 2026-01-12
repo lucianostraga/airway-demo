@@ -20,7 +20,6 @@ services:
       - key: PYTHON_VERSION
         value: 3.12
     healthCheckPath: /health
-    plan: free
     autoDeploy: true
     buildFilter:
       paths:
@@ -56,7 +55,6 @@ services:
       - path: /*
         name: X-Content-Type-Options
         value: nosniff
-    plan: free
     autoDeploy: true
     buildFilter:
       paths:
